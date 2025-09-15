@@ -61,7 +61,7 @@ import os
 # Database connection setup with fallback
 def setup_database():
     # MySQL connection (production)
-    mysql_url = "mysql+pymysql://root:password@localhost:3306/trade_data_db"
+    mysql_url = "mysql+pymysql://root:passwrd@localhost:3306/trade_data_db"
     
     # SQLite connection (fallback)
     sqlite_url = "sqlite:///trade_data.db"
