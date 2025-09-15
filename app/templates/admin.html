@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Excel Import</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .cleanup-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .cleanup-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .cleanup-btn {
+            background: linear-gradient(135deg, #ff6b35, #ff8f50);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .cleanup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .cleanup-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745, #34ce57);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .warning-text {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>📊 IMRS Admin</h2>
+            <div class="nav-item active" onclick="showPage('import')">
+                <span>📁</span> Excel Import
+            </div>
+            <div class="nav-item" onclick="showPage('analytics')">
+                <span>📈</span> Analytics
+            </div>
+            <div class="nav-item" onclick="showPage('cleanup')">
+                <span>🧹</span> Dublikat Tozalash
+            </div>
+            <div class="nav-item" onclick="window.open('/', '_blank')">
+                <span>👥</span> Client View
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Import Page -->
+            <div id="import-page" class="page">
+                <div class="page-header">
+                    <h1>Excel Ma'lumot Yuklash</h1>
+                    <p>IMRS tizimi uchun savdo ma'lumotlarini import qiling</p>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <h3>Excel faylni bu yerga tashlang yoki tugmani bosing</h3>
+                    <p style="margin: 10px 0; color: #666;">
+                        Qo'llab-quvvatlanadigan formatlar: .xlsx, .xls<br>
+                        Maksimal hajm: 100MB
+                    </p>
+                    <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Fayl tanlash
+                    </button>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display: none;"></div>
+
+                <div class="progress" id="progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="progressText">Yuklanmoqda...</p>
+                </div>
+
+                <div class="result" id="result" style="display: none;"></div>
+
+                <!-- Recent Imports -->
+                <div class="stats" id="recentImports" style="display: none;">
+                    <h3>📋 So'nggi Import Statistikasi</h3>
+                    <div id="importStats"></div>
+                    <button class="clear-btn" onclick="clearAllData()">
+                        🗑️ Barcha ma'lumotlarni o'chirish
+                    </button>
+                    <button class="clear-btn" onclick="removeDuplicatesFromImport()" style="background: linear-gradient(135deg, #ff6b35, #ff8f50); margin-left: 10px;">
+                        🧹 Dublikatlarni tozalash
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cleanup Page -->
+            <div id="cleanup-page" class="page" style="display: none;">
+                <div class="page-header">
+                    <h1>🧹 Dublikat Tozalash</h1>
+                    <p>Bazadagi takroriy recordlarni aniqlash va tozalash</p>
+                </div>
+
+                <div class="cleanup-section">
+                    <h3>📊 Database Statistikasi 
+                        <button class="refresh-btn" onclick="loadDuplicateStats()">🔄 Yangilash</button>
+                    </h3>
+                    
+                    <div class="cleanup-stats" id="duplicateStats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalRecords">-</div>
+                            <div class="stat-label">Jami Recordlar</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="uniqueRecords">-</div>
+                            <div class="stat-label">Unikal Recordlar</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="duplicateGroups">-</div>
+                            <div class="stat-label">Dublikat Guruhlari</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalDuplicates" style="color: #dc3545;">-</div>
+                            <div class="stat-label">Jami Dublikatlar</div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="cleanup-btn" id="cleanupBtn" onclick="removeDuplicates()">
+                            🧹 Dublikatlarni Tozalash
+                        </button>
+                        <div class="warning-text">
+                            ⚠️ Bu amaliyot qaytarib bo'lmaydi. Eng eski recordni saqlaydi, qolganlarini o'chiradi.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cleanupResult" style="display: none; margin-top: 20px;"></div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analytics-page" class="page" style="display: none;">
+                <div class="page-header">
+                    <h1>Database Analytics</h1>
+                    <p>Import qilingan ma'lumotlar statistikasi</p>
+                </div>
+
+                <div class="stats-grid" id="analyticsContent">
+                    <!-- Analytics content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sahifalarni almashtirish
+        function showPage(pageId) {
+            // Barcha sahifalarni yashirish
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // Barcha nav itemlardan active classini olib tashlash
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Tanlangan sahifani ko'rsatish
+            document.getElementById(pageId + '-page').style.display = 'block';
+            
+            // Tegishli nav itemga active class qo'shish
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Agar cleanup sahifasi tanlansa, statistikani yuklash
+            if (pageId === 'cleanup') {
+                loadDuplicateStats();
+            }
+            
+            // Agar analytics sahifasi tanlansa, statistikani yuklash
+            if (pageId === 'analytics') {
+                loadAnalytics();
+            }
+        }
+
+        // Dublikat statistikasini yuklash
+        async function loadDuplicateStats() {
+            try {
+                const response = await fetch('/api/duplicate-stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalRecords').textContent = data.total_records.toLocaleString();
+                    document.getElementById('uniqueRecords').textContent = data.unique_records.toLocaleString();
+                    document.getElementById('duplicateGroups').textContent = data.duplicate_groups.toLocaleString();
+                    document.getElementById('totalDuplicates').textContent = data.total_duplicates.toLocaleString();
+                    
+                    // Agar dublikat yo'q bo'lsa, tugmani disable qilish
+                    const cleanupBtn = document.getElementById('cleanupBtn');
+                    if (data.total_duplicates === 0) {
+                        cleanupBtn.disabled = true;
+                        cleanupBtn.textContent = '✅ Dublikat topilmadi';
+                    } else {
+                        cleanupBtn.disabled = false;
+                        cleanupBtn.textContent = `🧹 ${data.total_duplicates} ta dublikatni tozalash`;
+                    }
+                } else {
+                    console.error('Statistika yuklashda xatolik:', data.error);
+                }
+            } catch (error) {
+                console.error('Statistika yuklashda xatolik:', error);
+            }
+        }
+
+        // Dublikatlarni tozalash
+        async function removeDuplicates() {
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            const resultDiv = document.getElementById('cleanupResult');
+            
+            if (!confirm('Haqiqatan ham dublikatlarni o\'chirmoqchimisiz? Bu amaliyot qaytarib bo\'lmaydi!')) {
+                return;
+            }
+            
+            cleanupBtn.disabled = true;
+            cleanupBtn.textContent = '⏳ Tozalanmoqda...';
+            
+            try {
+                const response = await fetch('/api/remove-duplicates', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h4>✅ Muvaffaqiyatli!</h4>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                    
+                    // Statistikani qayta yuklash
+                    setTimeout(() => {
+                        loadDuplicateStats();
+                    }, 1000);
+                    
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error">
+                            <h4>❌ Xatolik!</h4>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                    
+                    cleanupBtn.disabled = false;
+                    cleanupBtn.textContent = '🧹 Dublikatlarni Tozalash';
+                }
+                
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        <h4>❌ Xatolik!</h4>
+                        <p>Server bilan aloqa qilishda xatolik: ${error.message}</p>
+                    </div>
+                `;
+                
+                cleanupBtn.disabled = false;
+                cleanupBtn.textContent = '🧹 Dublikatlarni Tozalash';
+            }
+        }
+
+        // Analytics yuklash
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+                
+                const analyticsContent = document.getElementById('analyticsContent');
+                analyticsContent.innerHTML = `
+                    <div class="stat-card">
+                        <h3>${data.total_records?.toLocaleString() || 0}</h3>
+                        <p>Jami Recordlar</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>$${(data.total_import_value || 0).toLocaleString()}</h3>
+                        <p>Import Qiymati</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>$${(data.total_export_value || 0).toLocaleString()}</h3>
+                        <p>Export Qiymati</p>
+                    </div>
+                    <!-- Qo'shimcha statistikalar... -->
+                `;
+            } catch (error) {
+                console.error('Analytics yuklashda xatolik:', error);
+            }
+        }
+
+        // Dublikatlarni import sahifasidan tozalash
+        async function removeDuplicatesFromImport() {
+            if (!confirm('Haqiqatan ham dublikatlarni o\'chirmoqchimisiz? Bu amaliyot qaytarib bo\'lmaydi!')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/remove-duplicates', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    // Agar import statistikasi ko'rsatilayotgan bo'lsa, uni yangilash
+                    // Bu yerda loadStats() funksiyasini chaqirishingiz mumkin
+                } else {
+                    alert('❌ Xatolik: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Server bilan aloqa qilishda xatolik: ' + error.message);
+            }
+        }
+
+        // Barcha ma'lumotlarni o'chirish
+        async function clearAllData() {
+            if (!confirm('Haqiqatan ham barcha ma\'lumotlarni o\'chirmoqchimisiz?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/clear-data', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    loadDuplicateStats(); // Statistikani yangilash
+                } else {
+                    alert('❌ Xatolik: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Server bilan aloqa qilishda xatolik: ' + error.message);
+            }
+        }
+
+        // Sahifa yuklanganda
+        document.addEventListener('DOMContentLoaded', function() {
+            // Default sahifani ko'rsatish
+            showPage('import');
+        });
+
+        // File upload va boshqa funksiyalar (oldingi koddan)
+        // ... (boshqa JavaScript funksiyalar bu yerda bo'ladi)
+    </script>
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>

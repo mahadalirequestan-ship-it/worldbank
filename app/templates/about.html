@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMRS Blog</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons/css/flag-icons.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Light theme */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-dark: rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="dark"] {
+            /* Dark theme */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --border-light: #334155;
+            --accent-primary: #60a5fa;
+            --accent-secondary: #3b82f6;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --shadow-dark: rgba(0, 0, 0, 0.8);
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--border-color);
+            padding: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 80px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .header-logo .logo-icon {
+            width: 115px;
+            height: 115px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-logo .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-logo .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-logo .logo-text span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 40px;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 0 20px;
+            transition: all 0.3s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-container i {
+            color: var(--text-muted);
+            margin-right: 12px;
+        }
+
+        .search-container input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 15px 0;
+            outline: none;
+        }
+
+        .search-container input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            position: relative;
+        }
+
+        .lang-current {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 13px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .lang-current:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        .flag-icon {
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 8px 25px var(--shadow-dark);
+            min-width: 150px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+
+        .lang-dropdown.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .lang-option:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: relative;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 4px 3px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            align-items: center;
+            width: 64px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            top: 4px;
+            left: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        .toggle-switch.active::before {
+            transform: translateX(32px);
+            background: var(--accent-secondary);
+        }
+
+        .toggle-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            pointer-events: none;
+        }
+
+        .toggle-icons i {
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .fa-sun {
+            color: var(--warning);
+        }
+
+        .toggle-switch:not(.active) .fa-moon {
+            color: var(--accent-primary);
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            color: white;
+            border-color: transparent;
+        }
+
+        .social-link[href*="telegram"]:hover {
+            background: #0088cc;
+        }
+
+        .social-link[href*="instagram"]:hover {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .social-link[href*="facebook"]:hover {
+            background: #1877f2;
+        }
+
+        .social-link[href*="youtube"]:hover {
+            background: #ff0000;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px 0;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .content-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 24px var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Blog Posts */
+        .blog-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .blog-post {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 24px var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blog-post:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px var(--shadow-dark);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .post-title:hover {
+            color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .post-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .post-status.public {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .post-status i {
+            font-size: 0.8rem;
+        }
+
+        .post-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .post-excerpt {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .post-full-content {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .post-full-content.expanded {
+            max-height: 1000px;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .meta-item i {
+            color: var(--accent-primary);
+        }
+
+        .post-date {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .read-more {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            font-size: inherit;
+        }
+
+        .read-more:hover {
+            color: var(--accent-secondary);
+            transform: translateX(3px);
+        }
+
+        /* Categories */
+        .categories {
+            margin-bottom: 30px;
+        }
+
+        .categories h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .category-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-item:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .category-count {
+            font-size: 0.8rem;
+            background: var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .category-item:hover .category-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Recent Posts */
+        .recent-posts h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recent-post {
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .recent-post:hover {
+            background: var(--border-color);
+            transform: translateX(3px);
+        }
+
+        .recent-post-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .recent-post-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        .simple-footer {
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--border-color);
+            margin-top: 80px;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .simple-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+        }
+
+        .simple-footer .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .simple-footer .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .simple-footer .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .simple-footer .logo-text span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .simple-footer .footer-info {
+            text-align: right;
+            color: var(--text-secondary);
+        }
+
+        .simple-footer .footer-info p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .simple-footer .footer-info strong {
+            color: var(--text-primary);
+        }
+
+        .simple-footer .copyright {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .sidebar {
+                position: static;
+                grid-order: 2;
+            }
+
+            .header-search {
+                max-width: 300px;
+                margin: 0 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                height: 70px;
+                padding: 0 15px;
+            }
+
+            .header-logo .logo-text h1 {
+                font-size: 1.4rem;
+            }
+
+            .header-search {
+                display: none;
+            }
+
+            .social-links {
+                display: none;
+            }
+
+            .main-container {
+                padding: 90px 15px 0;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+            }
+
+            .blog-post {
+                padding: 20px;
+            }
+
+            .post-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .post-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .simple-footer .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .simple-footer .footer-info {
+                text-align: center;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <!-- Logo Section -->
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <a href="/">
+                        <img src="static/images/screen.png" alt="IFMR Logo">
+                    </a>
+                </div>
+                <div class="logo-text">
+                    <!-- <h1>IMRS</h1>
+                    <span>Ma'lumotlarni boshqarish tizimi</span> -->
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="header-search">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Ma'lumotlarni qidirish..." id="headerSearch">
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="header-controls">
+                <!-- Language Selector -->
+                <div class="language-selector">
+                    <div class="lang-current" onclick="toggleLanguageDropdown()">
+                        <img src="https://flagcdn.com/w20/uz.png" alt="UZ" />
+                        <span>UZ</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <div class="lang-option" onclick="changeLanguage('uz')">
+                            <img src="https://flagcdn.com/w20/uz.png" alt="UZ" />
+                            <span>O'zbekcha</span>
+                        </div>
+                        <div class="lang-option" onclick="changeLanguage('ru')">
+                            <img src="https://flagcdn.com/w20/ru.png" alt="RU" />
+                            <span>Русский</span>
+                        </div>
+                        <div class="lang-option" onclick="changeLanguage('en')">
+                            <img src="https://flagcdn.com/w20/gb.png" alt="EN" />
+                            <span>English</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <div class="theme-toggle">
+                    <div class="toggle-switch" id="themeToggle" onclick="toggleTheme()">
+                        <div class="toggle-icons">
+                            <i class="fas fa-sun"></i>
+                            <i class="fas fa-moon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Media -->
+                <div class="social-links">
+                    <a href="https://t.me/imri_uz" target="_blank" title="Telegram" class="social-link">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="https://instagram.com/imri_uz" target="_blank" title="Instagram" class="social-link">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://facebook.com/imri.uz" target="_blank" title="Facebook" class="social-link">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://youtube.com/@imri_uz" target="_blank" title="YouTube" class="social-link">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Content Layout -->
+        <div class="content-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <input type="text" placeholder="Qidirish">
+                    <i class="fas fa-search"></i>
+                </div>
+
+                <!-- Categories -->
+                <div class="categories">
+                    <h3><i class="fas fa-folder"></i> Kategoriyalar</h3>
+                    <div class="category-list">
+                        <a href="#" class="category-item">
+                            <span>Tahlil</span>
+                            <span class="category-count">3</span>
+                        </a>
+                        <a href="#" class="category-item">
+                            <span>Demografiya</span>
+                            <span class="category-count">3</span>
+                        </a>
+                        <a href="#" class="category-item">
+                            <span>Iqtisodiyot</span>
+                            <span class="category-count">2</span>
+                        </a>
+                        <a href="#" class="category-item">
+                            <span>Savdo</span>
+                            <span class="category-count">1</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Posts -->
+                <div class="recent-posts">
+                    <h3><i class="fas fa-clock"></i> So'nggi maqolalar</h3>
+                    <div class="recent-post">
+                        <div class="recent-post-title">Eksport va Import ma'lumotlari</div>
+                        <div class="recent-post-date">17/23/2025</div>
+                    </div>
+                    <div class="recent-post">
+                        <div class="recent-post-title">Kishloq, urmon va baliqchilik</div>
+                        <div class="recent-post-date">17/23/2025</div>
+                    </div>
+                    <div class="recent-post">
+                        <div class="recent-post-title">Investitsiyalar va qurilish</div>
+                        <div class="recent-post-date">17/23/2025</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="blog-posts">
+                <!-- Blog Post 1 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title" onclick="navigateToPost(1, 'home')">Eksport va Import ma'lumotlari</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Tahlil, demografiya</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Eksport va import ma'lumotlari bo'limi mamlakatlar ichidagi va tashqi savdo faoliyatiga oid statistikani aks ettiradi. Bu erda mahsulotlar</span><span class="post-full-text" style="display: none;">ining eksport va import hajmlari, savdo balansi, asosiy savdo hamkorlari va mahsulot kategoriyalari bo'yicha batafsil ma'lumotlar keltirilgan. Statistik ma'lumotlar yillik, choraklik va oylik davrlarda taqdim etiladi. Eksport ma'lumotlari ichida qishloq xo'jaligi mahsulotlari, sanoat tovarlari, xom ashyo va yarim tayyor mahsulotlar bo'yicha ko'rsatkichlar mavjud. Import statistikasi esa mamlakatga olib kiriladigan tovarlar va xizmatlar hajmi, ularning tarkibi va asosiy yetkazib beruvchi davlatlar haqida ma'lumot beradi. Bu ma'lumotlar iqtisodiy tahlil va strategik rejalashtirish uchun muhim ahamiyat kasb etadi. Ma'lumotlar bazasida interaktiv grafiklar va jadvallar orqali dinamik ko'rsatkichlarni kuzatish imkoniyati mavjud.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 17/23/2025
+                    </div>
+                </article>
+
+                <!-- Blog Post 2 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title">Kishloq, urmon va baliqchilik</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Tahlil, demografiya</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Statistik salohiyat ko'rsatkichlari rivojlanayotgan mamlakatlar millioniy statistika tizimlarining turli jihatlari, salohiyat ko'rsatkichi h</span><span class="post-full-text" style="display: none;">aqida ma'lumot beradi. Kishloq xo'jaligi, o'rmon xo'jaligi va baliqchilik sohasi bo'yicha statistik ma'lumotlar mamlakatning oziq-ovqat xavfsizligi va tabiiy resurslardan foydalanish samaradorligini baholash uchun muhim hisoblanadi. Qishloq xo'jaligi bo'limida ekin maydonlari, hosildorlik ko'rsatkichlari, chorvachilik mahsulotlari ishlab chiqarish va qishloq xo'jaligi texnikalaridan foydalanish statistikasi keltirilgan. O'rmon xo'jaligi ma'lumotlari o'rmon zaxiralari, daraxt ekish va kesish hajmlari, o'rmon mahsulotlari ishlab chiqarish va ekologik muhofaza chora-tadbirlari haqida ma'lumot beradi. Baliqchilik statistikasi suv havzalaridan baliq ovlash hajmi, akvakultura rivojlanishi va baliq mahsulotlari eksporti bo'yicha ko'rsatkichlarni o'z ichiga oladi.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 17/23/2025
+                    </div>
+                </article>
+
+                <!-- Blog Post 3 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title">Investitsiyalar va qurilish</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Tahlil, demografiya</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Investitsiyalar va qurilish sohasi mamlakatning iqtisodiy o'sishida muhim rol o'ynaydi. Bu bo'limda kapital investitsiyalari, qurilish ishlari h</span><span class="post-full-text" style="display: none;">ajmi va infratuzilma loyihalari bo'yicha statistik ma'lumotlar taqdim etiladi. To'g'ridan-to'g'ri xorijiy investitsiyalar (TXI) dinamikasi, sektorlar bo'yicha taqsimoti va investorlar mamlakatlari haqida batafsil statistika mavjud. Bu ma'lumotlar investitsion muhitni baholash uchun zarur. Qurilish sohasida turar joy qurilishi, ishlab chiqarish ob'ektlari, ijtimoiy infratuzilma va transport yo'llari qurilishi bo'yicha ko'rsatkichlar keltirilgan. Davlat va xususiy sektorning investitsiya faoliyati, loyihalarning moliyalashtirish manbaalari va qurilish materiallariga bo'lgan talab tahlil qilinadi. Regional taqsimot va shaharsozlik rivojlanishi bo'yicha alohida statistik ma'lumotlar ham mavjud.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 17/23/2025
+                    </div>
+                </article>
+
+                <!-- Blog Post 4 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title">Makroiqtisodiy ko'rsatkichlar</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Iqtisodiyot, tahlil</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Mamlakatning asosiy makroiqtisodiy ko'rsatkichlari, YaIM, inflyatsiya darajasi, ishsizlik ko'rsatkichlari va boshqa muhim iqtisodiy ma'lumotlarni o'z</span><span class="post-full-text" style="display: none;"> ichiga oladi. Makroiqtisodiy ko'rsatkichlar mamlakatning umumiy iqtisodiy holatini baholash uchun asosiy vosita hisoblanadi. YaIM (Yalpi ichki mahsulot) o'sish sur'atlari, sektorlar bo'yicha taqsimoti va kishi boshiga to'g'ri keladigan daromad ko'rsatkichlari mavjud. Inflyatsiya darajasi oylik va yillik dinamikada taqdim etiladi. Iste'mol narxlari indeksi, ishlab chiqaruvchilar narxlari va xizmatlar narxlari bo'yicha alohida statistika keltirilgan. Mehnat bozori ko'rsatkichlari ishsizlik darajasi, bandlik, ish haqi o'sishi va mehnat unumdorligini o'z ichiga oladi. Yoshlar va ayollar bandligi bo'yicha maxsus ma'lumotlar ham mavjud. Davlat byudjeti, tashqi qarz, pul-kredit siyosati va bank tizimi ko'rsatkichlari iqtisodiy barqarorlikni baholash uchun muhim ahamiyat kasb etadi.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 15/23/2025
+                    </div>
+                </article>
+
+                <!-- Blog Post 5 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title">Aholini ro'yxatga olish va hayot statistikasi</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Demografiya, tahlil</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Aholi soni, tug'ilish va o'lim ko'rsatkichlari, migratsiya jarayonlari va boshqa demografik ma'lumotlar bo'yicha to'liq statistik tahlil va ma'lumotlar</span><span class="post-full-text" style="display: none;"> bazasi mavjud. Demografik statistika mamlakatning ijtimoiy-iqtisodiy rivojlanishini rejalashtirish uchun asosiy ma'lumotlar manbai hisoblanadi. Aholi sonining dinamikasi, yosh va jins tarkibi, geografik taqsimoti kabi ko'rsatkichlar mavjud. Tug'ilish va o'lim statistikasi tabiiy o'sish sur'atlarini, hayot davomiyligini va sog'liqni saqlash tizimi samaradorligini baholash imkonini beradi. Chaqaloq va ona o'limi ko'rsatkichlari alohida e'tibor qaratiladi. Migratsiya jarayonlari ichki va tashqi migratsiya, qo'shni davlatlar bilan aholi almashinuvi va shaharlashuv jarayonlari haqida ma'lumot beradi. Nikoh va ajrashish statistikasi, oilaviy holatlar va uy xo'jaliklari tarkibi bo'yicha ma'lumotlar ijtimoiy siyosatni ishlab chiqish uchun muhim.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 12/23/2025
+                    </div>
+                </article>
+
+                <!-- Blog Post 6 -->
+                <article class="blog-post">
+                    <div class="post-header">
+                        <div>
+                            <h2 class="post-title">Ta'lim va fan statistikasi</h2>
+                            <div class="post-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Ta'lim, tahlil</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-status public">
+                            <i class="fas fa-globe"></i>
+                            <span>Public</span>
+                        </div>
+                    </div>
+                    <p class="post-description">
+                        <span class="post-preview">Ta'lim tizimi bo'yicha to'liq statistik ma'lumotlar, o'quvchilar soni, ta'lim muassasalari, o'qituvchilar va ta'lim sifati ko'rsatkichlari mavjud. Ta'lim</span><span class="post-full-text" style="display: none;"> tizimi statistikasi mamlakatning intellektual salohiyati va kelajak rivojlanish imkoniyatlarini baholash uchun muhim ahamiyat kasb etadi. Maktabgacha, umumiy o'rta, o'rta maxsus va oliy ta'lim bo'yicha to'liq ma'lumotlar mavjud. O'quvchilar va talabalar soni dinamikasi, ta'lim muassasalariga qabul va bitiruvchilar statistikasi, o'qitish sifati va natijalarini baholash ko'rsatkichlari keltirilgan. Pedagog kadrlar tarkibi, ularning malaka darajasi, ishdan ketish va yangi ishga olish ko'rsatkichlari ta'lim sohasidagi kadrlar muammosini baholash imkonini beradi. Ilmiy tadqiqot faoliyati, innovatsion loyihalar, patent va ixtirolar soni, xalqaro hamkorlik dasturlari bo'yicha statistik ma'lumotlar mavjud.</span>
+                        <button class="read-more" onclick="togglePostText(this)">Ko'proq ko'rish <i class="fas fa-arrow-right"></i></button>
+                    </p>
+                    <div class="post-date">
+                        <strong>Oxirgi o'zgarish:</strong> 10/23/2025
+                    </div>
+                </article>
+
+                <!-- Pagination -->
+                <div style="display: flex; justify-content: center; margin-top: 40px; gap: 10px;">
+                    <button style="padding: 10px 15px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">
+                        <i class="fas fa-chevron-left"></i> Oldingi
+                    </button>
+                    <button style="padding: 10px 15px; border: 2px solid var(--accent-primary); background: var(--accent-primary); color: white; border-radius: 8px; cursor: pointer;">1</button>
+                    <button style="padding: 10px 15px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">2</button>
+                    <button style="padding: 10px 15px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">3</button>
+                    <button style="padding: 10px 15px; border: 2px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">
+                        Keyingi <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="simple-footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">
+                    <span>IMRS - Tashqi Savdo Tahlili</span>
+                </div>
+            </div>
+            <div class="footer-info">
+                <p>O'zbekiston Respublikasi Vazirlar Mahkamasi huzuridagi</p>
+                <p><strong>Makroiqtisodiy va xududiy tahlil instituti</strong></p>
+                <div class="copyright">
+                    &copy; 2024 IMRS. Barcha huquqlar himoyalangan.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function navigateToPost(postId, slug) {
+            // Option 1: Modern SPA routing (recommended)
+            if (typeof updateURL === 'function') {
+                updateURL(`${slug}`);
+                loadPostContent(postId);
+            } 
+            // Option 2: Server-side routing
+            else if (typeof window !== 'undefined') {
+                window.location.href = `${slug}`;
+            }
+            // Option 3: Hash routing (fallback)
+            else {
+                window.location.hash = `${slug}`;
+            }
+            
+            showToast('📖 Maqola', `"${slug}" maqolasiga o'tilmoqda...`);
+        }
+        // Expand/Collapse post text functionality
+        function togglePostText(button) {
+            const postDescription = button.closest('.post-description');
+            const fullText = postDescription.querySelector('.post-full-text');
+            const previewText = postDescription.querySelector('.post-preview');
+            
+            if (fullText.style.display === 'none') {
+                // Expand
+                fullText.style.display = 'inline';
+                button.innerHTML = 'Kamroq ko\'rish <i class="fas fa-arrow-up"></i>';
+                showToast('📖 Maqola', 'To\'liq matn ochildi');
+            } else {
+                // Collapse
+                fullText.style.display = 'none';
+                button.innerHTML = 'Ko\'proq ko\'rish <i class="fas fa-arrow-right"></i>';
+                showToast('📖 Maqola', 'Matn qisqartirildi');
+                
+                // Smooth scroll to post title
+                setTimeout(() => {
+                    button.closest('.blog-post').querySelector('.post-title').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }
+        }
+
+        // Language functions
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('langDropdown');
+            dropdown.classList.toggle('show');
+
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!e.target.closest('.language-selector')) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+
+        function changeLanguage(lang) {
+            const langCurrent = document.querySelector('.lang-current');
+            const flags = {
+                uz: 'https://flagcdn.com/w20/uz.png',
+                ru: 'https://flagcdn.com/w20/ru.png',
+                en: 'https://flagcdn.com/w20/gb.png'
+            };
+
+            const languages = {
+                uz: 'UZ',
+                ru: 'RU', 
+                en: 'EN'
+            };
+
+            langCurrent.innerHTML = `
+                <img src="${flags[lang]}" alt="${languages[lang]}" />
+                <span>${languages[lang]}</span>
+                <i class="fas fa-chevron-down"></i>
+            `;
+
+            document.getElementById('langDropdown').classList.remove('show');
+            localStorage.setItem('language', lang);
+            
+            // Show toast notification
+            showToast('🌐 Til o\'zgartirildi', `Interface ${languages[lang]} tiliga o\'tkazildi`);
+        }
+
+        // Theme Management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const toggleSwitch = document.getElementById('themeToggle');
+            const currentTheme = html.getAttribute('data-theme');
+
+            if (currentTheme === 'dark') {
+                html.removeAttribute('data-theme');
+                toggleSwitch.classList.remove('active');
+                localStorage.setItem('theme', 'light');
+                showToast('🌞 Yorug\'lik rejimi', 'Tema yorug\'lik rejimiga o\'tkazildi');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                toggleSwitch.classList.add('active');
+                localStorage.setItem('theme', 'dark');
+                showToast('🌙 Qorong\'u rejim', 'Tema qorong\'u rejimiga o\'tkazildi');
+            }
+        }
+
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const toggleSwitch = document.getElementById('themeToggle');
+
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                toggleSwitch.classList.add('active');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                toggleSwitch.classList.remove('active');
+            }
+        }
+
+        function initializeLanguage() {
+            const savedLanguage = localStorage.getItem('language') || 'uz';
+            if (savedLanguage && savedLanguage !== 'uz') {
+                changeLanguage(savedLanguage);
+            }
+        }
+
+        // Toast notification
+        function showToast(title, message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: var(--accent-primary);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px var(--shadow-dark);
+                transform: translateX(100%);
+                transition: all 0.4s ease;
+                z-index: 1000;
+                max-width: 350px;
+                font-weight: 500;
+            `;
+            
+            toast.innerHTML = `<strong>${title}</strong><br>${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 400);
+            }, 3000);
+        }
+
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            initializeLanguage();
+
+            // Header search
+            const headerSearch = document.getElementById('headerSearch');
+            if (headerSearch) {
+                headerSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const query = e.target.value.trim();
+                        if (query) {
+                            showToast('🔍 Qidiruv', `"${query}" bo\'yicha qidiruv boshlandi`);
+                        }
+                    }
+                });
+            }
+
+            // Sidebar search
+            const sidebarSearch = document.querySelector('.search-box input');
+            if (sidebarSearch) {
+                sidebarSearch.addEventListener('input', function(e) {
+                    const query = e.target.value.toLowerCase();
+                    const posts = document.querySelectorAll('.blog-post');
+                    
+                    posts.forEach(post => {
+                        const title = post.querySelector('.post-title').textContent.toLowerCase();
+                        const description = post.querySelector('.post-description').textContent.toLowerCase();
+                        
+                        if (title.includes(query) || description.includes(query)) {
+                            post.style.display = 'block';
+                        } else {
+                            post.style.display = query ? 'none' : 'block';
+                        }
+                    });
+                });
+            }
+
+            // Add click handlers for categories
+            document.querySelectorAll('.category-item').forEach(category => {
+                category.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const categoryName = this.querySelector('span').textContent;
+                    showToast('📁 Kategoriya', `"${categoryName}" kategoriyasi bo\'yicha filtrlash`);
+                });
+            });
+
+            // Add click handlers for recent posts
+            document.querySelectorAll('.recent-post').forEach(post => {
+                post.addEventListener('click', function() {
+                    const title = this.querySelector('.recent-post-title').textContent;
+                    showToast('📖 So\'nggi maqola', `"${title}" maqolasiga o\'tilmoqda`);
+                });
+            });
+
+            console.log('✅ IMRS Blog sahifasi yuklanganди! Kengaytiriluvchi maqolalar funksiyasi faol.');
+        });
+    </script>
+</body>
+
+</html>

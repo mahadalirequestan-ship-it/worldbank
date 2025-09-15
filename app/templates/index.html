@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Import Tizimi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .progress {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .stats h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .file-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Excel Import Tizimi</h1>
+            <p>Savdo ma'lumotlarini tez va oson import qiling</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>Excel faylni bu yerga tashlang yoki tugmani bosing</h3>
+                <p style="margin: 10px 0; color: #666;">
+                    Qo'llab-quvvatlanadigan formatlar: .xlsx, .xls<br>
+                    Maksimal hajm: 100MB
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Fayl tanlash
+                </button>
+            </div>
+
+            <div class="file-info" id="fileInfo"></div>
+
+            <div class="progress" id="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">Yuklanmoqda...</p>
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <h3>📈 Database Statistikasi</h3>
+                <div id="statsContent"></div>
+                <button class="clear-btn" onclick="clearData()">
+                    🗑️ Barcha ma'lumotlarni o'chirish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const result = document.getElementById('result');
+        const stats = document.getElementById('stats');
+
+        // Drag & Drop funksiyalari
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // Fayl ma'lumotlarini ko'rsatish
+            fileInfo.innerHTML = `
+                <strong>Tanlangan fayl:</strong> ${file.name}<br>
+                <strong>Hajm:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                <strong>Turi:</strong> ${file.type}
+            `;
+            fileInfo.style.display = 'block';
+
+            // Fayl formatini tekshirish
+            if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+                showResult('Faqat Excel fayl (.xlsx, .xls) yuklash mumkin!', 'error');
+                return;
+            }
+
+            // Fayl hajmini tekshirish
+            if (file.size > 100 * 1024 * 1024) {
+                showResult('Fayl hajmi 100MB dan oshmasligi kerak!', 'error');
+                return;
+            }
+
+            uploadFile(file);
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            progress.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('/upload-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(data.message, 'success');
+                    loadStats(); // Statistikani yangilash
+                } else {
+                    showResult(`Xatolik: ${data.error}`, 'error');
+                }
+
+            } catch (error) {
+                showResult(`Tarmoq xatoligi: ${error.message}`, 'error');
+            } finally {
+                progress.style.display = 'none';
+                progressFill.style.width = '0%';
+            }
+        }
+
+        function showResult(message, type) {
+            result.innerHTML = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+
+                let statsHtml = `
+                    <div class="stat-item">
+                        <span><strong>Jami ma'lumotlar:</strong></span>
+                        <span>${data.total_records.toLocaleString()}</span>
+                    </div>
+                `;
+
+                if (data.year_stats && data.year_stats.length > 0) {
+                    statsHtml += '<h4 style="margin: 15px 0 10px 0;">Yil bo\'yicha:</h4>';
+                    data.year_stats.forEach(item => {
+                        statsHtml += `
+                            <div class="stat-item">
+                                <span>${item.year}</span>
+                                <span>${item.count.toLocaleString()}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (data.country_stats && data.country_stats.length > 0) {
+                    statsHtml += '<h4 style="margin: 15px 0 10px 0;">Top mamlakatlar:</h4>';
+                    data.country_stats.slice(0, 5).forEach(item => {
+                        statsHtml += `
+                            <div class="stat-item">
+                                <span>${item.country}</span>
+                                <span>${item.count.toLocaleString()}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                document.getElementById('statsContent').innerHTML = statsHtml;
+                stats.style.display = 'block';
+
+            } catch (error) {
+                console.error('Statistika yuklashda xatolik:', error);
+            }
+        }
+
+        async function clearData() {
+            if (!confirm('Barcha ma\'lumotlarni o\'chirishni xohlaysizmi?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/clear-data', {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(data.message, 'success');
+                    loadStats();
+                } else {
+                    showResult(`Xatolik: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                showResult(`Tarmoq xatoligi: ${error.message}`, 'error');
+            }
+        }
+
+        // Sahifa yuklanganda statistikani olish
+        loadStats();
+    </script>
+</body>
+</html>
