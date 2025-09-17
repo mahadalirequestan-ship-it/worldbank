@@ -495,7 +495,7 @@
 
         .search-input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 12px 8px;
             border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 0.95rem;
@@ -2381,15 +2381,15 @@
                 <div class="section-content collapsed" id="series-content">
                     <div class="filter-controls">
                         <div class="controls-row">
-                            <div class="enhanced-search">
-                                <input type="text" class="search-input"
-                                    placeholder="Mahsulot nomi, HS kodi bo'yicha qidirish..." id="seriesSearch"
-                                    oninput="performEnhancedSearch(this)">
-                                <!-- Bu dropdown endi ishlatilmaydi, lekin qoldirib qo'yish mumkin -->
-                                <div class="search-dropdown" id="seriesSearchDropdown" style="display: none;">
+                            <!-- <div class="enhanced-search"> -->
+                            <input type="text" class="search-input"
+                                placeholder="Mahsulot nomi, HS kodi bo'yicha qidirish..." id="seriesSearch"
+                                oninput="performEnhancedSearch(this)">
+                            <!-- Bu dropdown endi ishlatilmaydi, lekin qoldirib qo'yish mumkin -->
+                            <div class="search-dropdown" id="seriesSearchDropdown" style="display: none;">
 
-                                </div>
                             </div>
+                            <!-- </div> -->
                             <button class="control-btn" onclick="selectAllSeries()" title="Barchasini tanlash">
                                 <i class="fas fa-check-square"></i>
                             </button>
@@ -2930,7 +2930,7 @@
             let html = '';
             filteredSeries.forEach((item, index) => {
                 const productName = item.name || item.product_name || 'Noma\'lum mahsulot';
-                const shortName = productName.length > 40 ? productName.substring(0, 37) + '...' : productName;
+                const shortName = productName.length > 100 ? productName.substring(0, 70) + '...' : productName;
                 const isSelected = selectedSeries.includes(productName);
 
                 html += `
@@ -4297,12 +4297,19 @@
             }
 
             // Chart configuration
+            // Chart konfiguratsiyasini yangilang:
+
             const config = {
                 type: chartType,
                 data: chartData,
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    // Bu qismni o'zgartiring - faqat bitta nuqta uchun interaction
+                    interaction: {
+                        mode: 'point', // 'index' o'rniga 'point' qo'ying
+                        intersect: true, // false o'rniga true qo'ying
+                    },
                     plugins: {
                         title: {
                             display: true,
@@ -4314,25 +4321,87 @@
                             color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                         },
                         legend: {
+                            display: true,
+                            position: 'top',
                             labels: {
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
                                 font: {
-                                    size: 12
+                                    size: 11
+                                },
+                                usePointStyle: true,
+                                padding: 15,
+                                generateLabels: function(chart) {
+                                    const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                                    const labels = original.call(this, chart);
+
+                                    labels.forEach(label => {
+                                        if (label.text && label.text.length > 25) {
+                                            label.text = label.text.substring(0, 22) + '...';
+                                        }
+                                    });
+
+                                    return labels;
                                 }
                             }
-                        }
+                        },
+                        // Tooltip konfiguratsiyasini yangilang
+                        tooltip: {
+    mode: 'point',
+    intersect: true,
+    callbacks: {
+        title: function(context) {
+            if (context.length > 0) {
+                return `${context[0].label}-yil`;
+            }
+            return '';
+        },
+        label: function(context) {
+            const fullName = context.dataset.fullName || context.dataset.label;
+            // Mahsulot nomini 40 ta belgidan ko'p bo'lsa qisqartirish
+            const displayName = fullName.length > 40 ? 
+                fullName.substring(0, 37) + '...' : fullName;
+            const value = formatChartNumber(context.parsed.y);
+            return `${displayName}: ${value}`;
+        }
+    },
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    titleColor: '#fff',
+    bodyColor: '#fff',
+    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-primary'),
+    borderWidth: 1,
+    cornerRadius: 8,
+    displayColors: true,
+    titleFont: {
+        size: 14,
+        weight: 'bold'
+    },
+    bodyFont: {
+        size: 12
+    }
+},
                     },
                     scales: chartType !== 'pie' ? {
                         x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Yillar',
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                            },
                             ticks: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted'),
-                                maxRotation: 45
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted')
                             },
                             grid: {
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
                             }
                         },
                         y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: getMetricLabel(metric),
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                            },
                             ticks: {
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted'),
                                 callback: function(value) {
@@ -4343,10 +4412,78 @@
                                 color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
                             }
                         }
-                    } : {}
+                    } : {},
+                    // Hover effektlarini sozlash
+                    elements: {
+                        point: {
+                            hoverRadius: 8, // Hover paytida nuqta kattalashadi
+                            hoverBorderWidth: 3,
+                            radius: 4 // Oddiy holatda nuqta o'lchami
+                        },
+                        line: {
+                            hoverBorderWidth: 3 // Hover paytida liniya qalinlashadi
+                        }
+                    }
                 }
             };
 
+            // Metrik o'lchov birligini qaytaruvchi yordamchi funksiya
+            function getMetricUnit(metric) {
+                const units = {
+                    export_volume: 'kg/tons',
+                    export_price: 'USD',
+                    import_volume: 'kg/tons',
+                    import_price: 'USD'
+                };
+                return units[metric] || '';
+            }
+
+            // Agar faqat o'sha liniyaning ma'lumotini ko'rsatishni istasangiz:
+            // tooltip callback'ini yanada soddalashtirish mumkin:
+
+            // ALTERNATIV VARIANT - faqat hover qilingan liniya ma'lumoti
+            const alternativeTooltipConfig = {
+                tooltip: {
+                    mode: 'nearest', // Eng yaqin nuqtani topish
+                    intersect: true,
+                    callbacks: {
+                        title: function(context) {
+                            return `${context[0].label}-yil`;
+                        },
+                        label: function(context) {
+                            const productName = context.dataset.fullName || context.dataset.label;
+                            const value = context.parsed.y;
+                            const formattedValue = formatChartNumber(value);
+
+                            return `${productName}: ${formattedValue}`;
+                        },
+                        // Footer qo'shish (ixtiyoriy)
+                        footer: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                const context = tooltipItems[0];
+                                const percentage = calculatePercentageChange(context);
+                                return percentage ? [`O'zgarish: ${percentage}`] : [];
+                            }
+                            return [];
+                        }
+                    }
+                }
+            };
+
+            // O'zgarish foizini hisoblash (ixtiyoriy qo'shimcha funksiya)
+            function calculatePercentageChange(context) {
+                const currentValue = context.parsed.y;
+                const dataIndex = context.dataIndex;
+
+                if (dataIndex > 0) {
+                    const previousValue = context.dataset.data[dataIndex - 1];
+                    if (previousValue && previousValue !== 0) {
+                        const change = ((currentValue - previousValue) / previousValue) * 100;
+                        return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+                    }
+                }
+                return null;
+            }
             currentChart = new Chart(ctx, config);
         }
 
@@ -4385,46 +4522,97 @@
             };
         }
 
-        function prepareCountryTimelineData(data, metric) {
-            const yearData = {};
+function prepareCountryTimelineData(data, metric) {
+    const productData = {};
 
-            data.forEach(item => {
-                const year = item.year || 'Unknown';
-                const value = parseFloat(item[metric]) || 0;
+    // Har bir mahsulot uchun yillik ma'lumotlarni to'plash
+    data.forEach(item => {
+        const productName = item.name || item.product_name || 'Noma\'lum';
+        const year = item.year || 'Unknown';
+        const value = parseFloat(item[metric]) || 0;
 
-                if (!yearData[year]) {
-                    yearData[year] = 0;
+        if (value > 0) { // Faqat 0 dan katta qiymatlar
+            if (!productData[productName]) {
+                productData[productName] = {};
+            }
+
+            if (!productData[productName][year]) {
+                productData[productName][year] = 0;
+            }
+
+            productData[productName][year] += value;
+        }
+    });
+
+    // Har bir mahsulot uchun dataset yaratish
+    const datasets = [];
+    const colors = [
+        '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+        '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#6B7280',
+        '#059669', '#DC2626', '#7C3AED', '#EA580C', '#0891B2'
+    ];
+
+    let colorIndex = 0;
+    Object.entries(productData).forEach(([productName, yearData]) => {
+        // Faqat 0 dan katta qiymatli yillarni olish
+        const validDataPoints = Object.entries(yearData)
+            .filter(([year, value]) => value > 0)
+            .sort((a, b) => parseInt(a[0]) - parseInt(b[0])); // Yillar bo'yicha saralash
+
+        if (validDataPoints.length > 0) {
+            const shortName = productName.length > 30 ?
+                productName.substring(0, 27) + '...' : productName;
+
+            datasets.push({
+                label: shortName,
+                fullName: productName, // Tooltip uchun to'liq nom
+                data: validDataPoints,
+                borderColor: colors[colorIndex % colors.length],
+                backgroundColor: colors[colorIndex % colors.length] + '20',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                parsing: {
+                    xAxisKey: '0', // year
+                    yAxisKey: '1'  // value
                 }
-                yearData[year] += value;
             });
 
-            const sortedYears = Object.entries(yearData)
-                .filter(([year, value]) => value > 0)
-                .sort((a, b) => a[0] - b[0]);
-
-            return {
-                labels: sortedYears.map(item => item[0]),
-                datasets: [{
-                    label: getMetricLabel(metric),
-                    data: sortedYears.map(item => item[1]),
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderColor: '#3B82F6',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.4
-                }]
-            };
+            colorIndex++;
         }
+    });
 
+    // Barcha yillarni topish (faqat ishlatilgan yillar)
+    const allYears = new Set();
+    datasets.forEach(dataset => {
+        dataset.data.forEach(point => allYears.add(point[0]));
+    });
+
+    const sortedYears = Array.from(allYears).sort();
+
+    // Eng ko'p 10 ta mahsulotni ko'rsatish
+    datasets.sort((a, b) => {
+        const sumA = a.data.reduce((sum, point) => sum + point[1], 0);
+        const sumB = b.data.reduce((sum, point) => sum + point[1], 0);
+        return sumB - sumA;
+    });
+
+    return {
+        labels: sortedYears,
+        datasets: datasets.slice(0, 10)
+    };
+}
         function getChartTitle(metric) {
             const titles = {
-                export_volume: 'Eksport Hajmi bo\'yicha Tahlil',
-                export_price: 'Eksport Narxi bo\'yicha Tahlil',
-                import_volume: 'Import Hajmi bo\'yicha Tahlil',
-                import_price: 'Import Narxi bo\'yicha Tahlil'
+                export_volume: 'Mahsulotlar bo\'yicha Eksport Hajmi',
+                export_price: 'Mahsulotlar bo\'yicha Eksport Narxi',
+                import_volume: 'Mahsulotlar bo\'yicha Import Hajmi',
+                import_price: 'Mahsulotlar bo\'yicha Import Narxi'
             };
 
-            let title = titles[metric] || 'Ma\'lumotlar Tahlili';
+            let title = titles[metric] || 'Mahsulotlar bo\'yicha Ma\'lumotlar';
 
             if (selectedCountryForView !== 'all') {
                 title = `${selectedCountryForView} - ${title}`;
